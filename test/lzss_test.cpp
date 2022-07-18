@@ -772,12 +772,10 @@ Public License instead of this License.  But first, please read
   lzss_stream_t in_s;
 
   uint8_t out_buf[sizeof(in_buf) + sizeof(in_buf) / 8] = "";
-  // uint8_t out_buf[400000];
   array_like_t out_a;
   lzss_stream_t out_s;
 
   uint8_t decoded_buf[sizeof(in_buf) + sizeof(in_buf) / 8] = "";
-  // uint8_t decoded_buf[400000];
   array_like_t decoded_a;
   lzss_stream_t decoded_s;
 
