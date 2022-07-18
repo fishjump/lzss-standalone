@@ -5,9 +5,9 @@ add_executable(${PROJECT_TEST_NAME})
 find_package(Threads REQUIRED)
 
 target_include_directories(${PROJECT_TEST_NAME}
-    PUBLIC
-        ${GTEST_INCLUDE_DIRS}
     PRIVATE
+        ${PROJECT_SOURCE_DIR}/include
+        ${GTEST_INCLUDE_DIRS}
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -17,10 +17,10 @@ target_sources(${PROJECT_TEST_NAME}
 )
 
 target_link_libraries(${PROJECT_TEST_NAME}
-    PUBLIC
+    PRIVATE
         ${GTEST_BOTH_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
-        ${CMAKE_PROJECT_NAME}
+        ${PROJECT_NAME}
 )
 
 add_test(
