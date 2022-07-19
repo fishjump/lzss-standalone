@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "circular_queue.h"
+#include "config.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

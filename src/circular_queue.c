@@ -1,5 +1,5 @@
-#include "circular_queue.h"
 #include "helper.h"
+#include <lzss/circular_queue.h>
 
 // initializor
 void make_lcq(lzss_circular_queue_t *queue, uint8_t *buffer, size_t capacity) {

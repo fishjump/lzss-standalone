@@ -4,6 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct lzss_circular_queue lzss_circular_queue_t;
 
 struct lzss_circular_queue {
@@ -31,5 +35,9 @@ size_t lcq_capacity(const lzss_circular_queue_t *queue);
 int lcq_push(lzss_circular_queue_t *queue, uint8_t value);
 int lcq_pop(lzss_circular_queue_t *queue);
 int lcq_push_and_pop(lzss_circular_queue_t *queue, uint8_t value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __LZSS_STANDALONE_CIRCULAR_QUEUE_H__

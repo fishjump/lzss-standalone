@@ -1,6 +1,7 @@
 #ifndef __LZSS_STANDALONE_HELPER_H__
 #define __LZSS_STANDALONE_HELPER_H__
 
+#include <lzss/lzss.h>
 #include <lzss/config.h>
 
 #define ASSERT_EQ(a, b)                                                        \
@@ -13,13 +14,6 @@
 #define FLAG_AT(bitset, index) (((bitset) >> (index)) & 0b00000001)
 #define FLAG_SET(bitset, index) ((bitset) |= (0b00000001 << (index)))
 #define FLAG_UNSET(bitset, index) ((bitset) &= ~(0b00000001 << (index)))
-
-typedef struct reference_pair reference_pair_t;
-
-struct reference_pair {
-  uint8_t start;
-  uint8_t size;
-};
 
 typedef struct lzss_block lzss_block_t;
 

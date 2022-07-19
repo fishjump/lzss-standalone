@@ -1,6 +1,5 @@
 #include <lzss/lzss.h>
 
-#include "circular_queue.h"
 #include "helper.h"
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
