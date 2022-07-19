@@ -47,7 +47,8 @@ __lzss_weak void close_array_like_stream(lzss_stream_t *s) {
   array->cursor = 0;
 }
 
-__lzss_weak size_t array_like_read(lzss_stream_t *s, void *buffer, size_t size) {
+__lzss_weak size_t array_like_read(lzss_stream_t *s, void *buffer,
+                                   size_t size) {
   array_like_t *array;
   size_t i;
 
@@ -68,7 +69,8 @@ __lzss_weak size_t array_like_read(lzss_stream_t *s, void *buffer, size_t size) 
   return i;
 }
 
-__lzss_weak size_t array_like_write(lzss_stream_t *s, void *buffer, size_t size) {
+__lzss_weak size_t array_like_write(lzss_stream_t *s, void *buffer,
+                                    size_t size) {
   array_like_t *array;
   size_t i;
 
