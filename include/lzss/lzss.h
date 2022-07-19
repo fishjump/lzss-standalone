@@ -14,35 +14,49 @@ typedef struct lzss_decode_ctx lzss_decode_ctx_t;
 typedef struct reference_pair reference_pair_t;
 typedef struct lzss_encode_stream lzss_encode_stream_t;
 typedef struct lzss_decode_stream lzss_decode_stream_t;
+typedef struct lzss_block lzss_block_t;
+typedef struct lzss_block_stream lzss_block_stream_t;
 
 struct reference_pair {
   uint8_t start;
   uint8_t size;
 };
 
-// TODO: implement this struct
-// struct lzss_encode_stream {
-//   lzss_stream_t *origin;
+struct lzss_block {
+  uint8_t flag;
+  uint8_t data[16];
+};
 
-//   uint8_t h_buffer[HISTORY_WINDOW_SIZE];
-//   lzss_circular_queue_t h_queue; // history window queue
+struct lzss_block_stream {
+  lzss_block_t block;
+  size_t cursor;
+  size_t item_cnt;
+};
 
-//   uint8_t bitset;    // bitset for current flag byte
-//   uint8_t bit_index; // bit index for bitset
+void make_lbs(lzss_block_stream_t *stream);
+int lbs_write_byte(lzss_block_stream_t *stream, uint8_t data);
+int lbs_write_pair(lzss_block_stream_t *stream, reference_pair_t pair);
+int lbs_size(lzss_block_stream_t *stream);
+int lbs_eof(lzss_block_stream_t *stream);
 
-//   size_t pair_index;     // index of the reference pair
-//   reference_pair_t pair; // reference pair
+struct lzss_encode_stream {
+  lzss_stream_t *out;
 
-//   uint8_t pair_buffer[HISTORY_WINDOW_SIZE];
-// };
+  uint8_t h_buf[HISTORY_WINDOW_SIZE]; // history window
+  uint8_t f_buf[FUTURE_WINDOW_SIZE];  // future window
 
-// int lzss_encode_stream_read(lzss_encode_stream_t *stream, void *buffer,
-//                             size_t size);
-// void lzss_encode_stream_open(lzss_encode_stream_t *stream,
-//                              lzss_stream_t *encoded);
-// void lzss_encode_stream_close(lzss_encode_stream_t *stream);
+  lzss_circular_queue_t h_queue; // history window queue
+  lzss_circular_queue_t f_queue; // future window queue
 
-int lzss_encode(lzss_stream_t *in, lzss_stream_t *out);
+  // reference_pair_t pair;
+  lzss_block_stream_t lbs;
+};
+
+int lzss_encode_stream_write(lzss_encode_stream_t *stream, void *buffer,
+                             size_t size);
+void lzss_encode_stream_open(lzss_encode_stream_t *stream,
+                             lzss_stream_t *encoded);
+void lzss_encode_stream_close(lzss_encode_stream_t *stream);
 
 struct lzss_decode_stream {
   lzss_stream_t *encoded;

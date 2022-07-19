@@ -34,22 +34,23 @@ TEST(lzss_test, hello_world) {
   array_like_t decoded_a;
   lzss_stream_t decoded_s;
 
-  lzss_decode_stream_t stream;
+  lzss_encode_stream_t encode_s;
+  lzss_decode_stream_t decode_s;
 
   make_array_like(&in_a, in_buf, sizeof(in_buf));
   make_array_like(&out_a, out_buf, sizeof(out_buf));
   make_array_like(&decoded_a, decoded_buf, sizeof(decoded_buf));
 
-  open_array_like_stream(&in_s, &in_a);
   open_array_like_stream(&out_s, &out_a);
-  lzss_encode(&in_s, &out_s);
-  close_array_like_stream(&in_s);
+  lzss_encode_stream_open(&encode_s, &out_s);
+  lzss_encode_stream_write(&encode_s, in_buf, sizeof(in_buf));
+  lzss_encode_stream_close(&encode_s);
   close_array_like_stream(&out_s);
 
   open_array_like_stream(&out_s, &out_a);
-  lzss_decode_stream_open(&stream, &out_s);
-  lzss_decode_stream_read(&stream, decoded_buf, sizeof(in_buf));
-  lzss_decode_stream_close(&stream);
+  lzss_decode_stream_open(&decode_s, &out_s);
+  lzss_decode_stream_read(&decode_s, decoded_buf, sizeof(in_buf));
+  lzss_decode_stream_close(&decode_s);
   close_array_like_stream(&out_s);
 
   print_memory(in_buf, sizeof(in_buf));
@@ -76,22 +77,23 @@ TEST(lzss_test, all_zeros) {
   array_like_t decoded_a;
   lzss_stream_t decoded_s;
 
-  lzss_decode_stream_t stream;
+  lzss_encode_stream_t encode_s;
+  lzss_decode_stream_t decode_s;
 
   make_array_like(&in_a, in_buf, sizeof(in_buf));
   make_array_like(&out_a, out_buf, sizeof(out_buf));
   make_array_like(&decoded_a, decoded_buf, sizeof(decoded_buf));
 
-  open_array_like_stream(&in_s, &in_a);
   open_array_like_stream(&out_s, &out_a);
-  lzss_encode(&in_s, &out_s);
-  close_array_like_stream(&in_s);
+  lzss_encode_stream_open(&encode_s, &out_s);
+  lzss_encode_stream_write(&encode_s, in_buf, sizeof(in_buf));
+  lzss_encode_stream_close(&encode_s);
   close_array_like_stream(&out_s);
 
   open_array_like_stream(&out_s, &out_a);
-  lzss_decode_stream_open(&stream, &out_s);
-  lzss_decode_stream_read(&stream, decoded_buf, sizeof(in_buf));
-  lzss_decode_stream_close(&stream);
+  lzss_decode_stream_open(&decode_s, &out_s);
+  lzss_decode_stream_read(&decode_s, decoded_buf, sizeof(in_buf));
+  lzss_decode_stream_close(&decode_s);
   close_array_like_stream(&out_s);
 
   print_memory(in_buf, sizeof(in_buf));
@@ -792,22 +794,23 @@ Public License instead of this License.  But first, please read
   array_like_t decoded_a;
   lzss_stream_t decoded_s;
 
-  lzss_decode_stream_t stream;
+  lzss_encode_stream_t encode_s;
+  lzss_decode_stream_t decode_s;
 
   make_array_like(&in_a, in_buf, sizeof(in_buf));
   make_array_like(&out_a, out_buf, sizeof(out_buf));
   make_array_like(&decoded_a, decoded_buf, sizeof(decoded_buf));
 
-  open_array_like_stream(&in_s, &in_a);
   open_array_like_stream(&out_s, &out_a);
-  lzss_encode(&in_s, &out_s);
-  close_array_like_stream(&in_s);
+  lzss_encode_stream_open(&encode_s, &out_s);
+  lzss_encode_stream_write(&encode_s, in_buf, sizeof(in_buf));
+  lzss_encode_stream_close(&encode_s);
   close_array_like_stream(&out_s);
 
   open_array_like_stream(&out_s, &out_a);
-  lzss_decode_stream_open(&stream, &out_s);
-  lzss_decode_stream_read(&stream, decoded_buf, sizeof(in_buf));
-  lzss_decode_stream_close(&stream);
+  lzss_decode_stream_open(&decode_s, &out_s);
+  lzss_decode_stream_read(&decode_s, decoded_buf, sizeof(in_buf));
+  lzss_decode_stream_close(&decode_s);
   close_array_like_stream(&out_s);
 
   print_memory(in_buf, sizeof(in_buf));
@@ -839,29 +842,30 @@ TEST(lzss_test, partial_read) {
   array_like_t decoded_a;
   lzss_stream_t decoded_s;
 
-  lzss_decode_stream_t stream;
+  lzss_encode_stream_t encode_s;
+  lzss_decode_stream_t decode_s;
 
   make_array_like(&in_a, in_buf, sizeof(in_buf));
   make_array_like(&out_a, out_buf, sizeof(out_buf));
   make_array_like(&decoded_a, decoded_buf, sizeof(decoded_buf));
 
-  open_array_like_stream(&in_s, &in_a);
   open_array_like_stream(&out_s, &out_a);
-  lzss_encode(&in_s, &out_s);
-  close_array_like_stream(&in_s);
+  lzss_encode_stream_open(&encode_s, &out_s);
+  lzss_encode_stream_write(&encode_s, in_buf, sizeof(in_buf));
+  lzss_encode_stream_close(&encode_s);
   close_array_like_stream(&out_s);
 
   open_array_like_stream(&out_s, &out_a);
-  lzss_decode_stream_open(&stream, &out_s);
+  lzss_decode_stream_open(&decode_s, &out_s);
 
   size_t cnt = 0;
   while (cnt < sizeof(in_buf)) {
-    lzss_decode_stream_read(&stream, decoded_buf + cnt, 1);
+    lzss_decode_stream_read(&decode_s, decoded_buf + cnt, 1);
     EXPECT_EQ(memcmp(in_buf, decoded_buf, cnt), 0);
     cnt++;
   }
 
-  lzss_decode_stream_close(&stream);
+  lzss_decode_stream_close(&decode_s);
   close_array_like_stream(&out_s);
 
   print_memory(in_buf, sizeof(in_buf));

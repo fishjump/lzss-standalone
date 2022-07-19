@@ -67,92 +67,90 @@ static reference_pair_t lcp(const lzss_circular_queue_t *a,
   return ret;
 }
 
-int lzss_encode(lzss_stream_t *in, lzss_stream_t *out) {
-  uint8_t h_buf[HISTORY_WINDOW_SIZE]; // history window
-  uint8_t f_buf[FUTURE_WINDOW_SIZE];  // future window
+void lzss_encode_stream_open(lzss_encode_stream_t *stream, lzss_stream_t *out) {
+  stream->out = out;
 
-  lzss_circular_queue_t h_queue; // history window queue
-  lzss_circular_queue_t f_queue; // future window queue
+  make_lcq(&stream->h_queue, stream->h_buf, HISTORY_WINDOW_SIZE);
+  make_lcq(&stream->f_queue, stream->f_buf, FUTURE_WINDOW_SIZE);
+  make_lbs(&stream->lbs);
+}
 
+int lzss_encode_stream_write(lzss_encode_stream_t *stream, void *buffer,
+                             size_t size) {
+  size_t i, j;
+  uint8_t c, o;
   reference_pair_t pair;
-  lzss_block_stream_t lbs;
 
-  uint8_t c, o; // current/old character
+  for (i = 0; i < size; i++) {
+    // stream->origin->read(stream->origin, &c, 1);
+    c = ((uint8_t *)buffer)[i];
 
-  size_t i;
-
-  make_lcq(&h_queue, h_buf, HISTORY_WINDOW_SIZE);
-  make_lcq(&f_queue, f_buf, FUTURE_WINDOW_SIZE);
-  make_lbs(&lbs);
-
-  // read until EOF
-  while (in->read(in, &c, 1) == 1) {
-    // if the future window is not full, push the current character into it
-    // until it is full.
-    if (!lcq_full(&f_queue)) {
-      ASSERT_EQ(lcq_push(&f_queue, c), 0);
+    if (!lcq_full(&stream->f_queue)) {
+      lcq_push(&stream->f_queue, c);
       continue;
     }
 
-    // find the longest common prefix in the history for the future window
-    pair = lcp(&f_queue, &h_queue);
+    pair = lcp(&stream->f_queue, &stream->h_queue);
 
     if (pair.size <= 2) {
       // put the front to the history and write it to the output. the reference
       // pair takes 2 bytes, we won't be benefited if the common prefix is not
       // greater than 3. in this case, write the literal character.
-      ASSERT_EQ(lcq_front(&f_queue, &o), 0);
-      ASSERT_EQ(lcq_pop(&f_queue), 0);
-      ASSERT_EQ(lcq_push_and_pop(&h_queue, o), 0);
+      lcq_front(&stream->f_queue, &o);
+      lcq_pop(&stream->f_queue);
+      lcq_push_and_pop(&stream->h_queue, o);
 
-      ASSERT_EQ(lbs_write_byte(&lbs, o), 0);
+      lbs_write_byte(&stream->lbs, o);
     } else {
       // save the reference pair to the output, and put them into the history
-      for (i = 0; i < pair.size; i++) {
-        ASSERT_EQ(lcq_front(&f_queue, &o), 0);
-        ASSERT_EQ(lcq_pop(&f_queue), 0);
-        ASSERT_EQ(lcq_push_and_pop(&h_queue, o), 0);
+      for (j = 0; j < pair.size; j++) {
+        ASSERT_EQ(lcq_front(&stream->f_queue, &o), 0);
+        ASSERT_EQ(lcq_pop(&stream->f_queue), 0);
+        ASSERT_EQ(lcq_push_and_pop(&stream->h_queue, o), 0);
       }
 
-      ASSERT_EQ(lbs_write_pair(&lbs, pair), 0);
+      lbs_write_pair(&stream->lbs, pair);
     }
 
-    if (lbs_eof(&lbs)) {
-      out->write(out, &lbs.block, lbs_size(&lbs));
-      make_lbs(&lbs); // reset lbs
+    if (lbs_eof(&stream->lbs)) {
+      stream->out->write(stream->out, &stream->lbs.block,
+                         lbs_size(&stream->lbs));
+      make_lbs(&stream->lbs); // reset lbs
     }
 
     // add the current character to the future window
-    ASSERT_EQ(lcq_push(&f_queue, c), 0);
+    lcq_push(&stream->f_queue, c);
   }
 
-  // cleanup the rest of data in the future window
-  while (!lcq_empty(&f_queue)) {
+  return i;
+}
 
-    pair = lcp(&f_queue, &h_queue);
-
+void lzss_encode_stream_close(lzss_encode_stream_t *stream) {
+  uint8_t c, o;
+  size_t i;
+  reference_pair_t pair;
+  while (!lcq_empty(&stream->f_queue)) {
+    pair = lcp(&stream->f_queue, &stream->h_queue);
     if (pair.size <= 2) {
-      ASSERT_EQ(lcq_front(&f_queue, &o), 0);
-      ASSERT_EQ(lcq_pop(&f_queue), 0);
-      ASSERT_EQ(lcq_push_and_pop(&h_queue, o), 0);
-
-      ASSERT_EQ(lbs_write_byte(&lbs, o), 0);
+      lcq_front(&stream->f_queue, &o);
+      lcq_pop(&stream->f_queue);
+      lcq_push_and_pop(&stream->h_queue, o);
+      lbs_write_byte(&stream->lbs, o);
     } else {
       for (i = 0; i < pair.size; i++) {
-        ASSERT_EQ(lcq_front(&f_queue, &o), 0);
-        ASSERT_EQ(lcq_pop(&f_queue), 0);
-        ASSERT_EQ(lcq_push_and_pop(&h_queue, o), 0);
+        lcq_front(&stream->f_queue, &o);
+        lcq_pop(&stream->f_queue);
+        lcq_push_and_pop(&stream->h_queue, o);
       }
-      ASSERT_EQ(lbs_write_pair(&lbs, pair), 0);
+      lbs_write_pair(&stream->lbs, pair);
     }
 
-    if (lbs_eof(&lbs)) {
-      out->write(out, &lbs.block, lbs_size(&lbs));
-      make_lbs(&lbs); // reset lbs
+    if (lbs_eof(&stream->lbs)) {
+      stream->out->write(stream->out, &stream->lbs.block,
+                         lbs_size(&stream->lbs));
+      make_lbs(&stream->lbs); // reset lbs
     }
   }
 
-  out->write(out, &lbs.block, lbs_size(&lbs));
-
-  return 0;
+  stream->out->write(stream->out, &stream->lbs.block, lbs_size(&stream->lbs));
 }
