@@ -13,8 +13,8 @@ extern "C" {
 
 typedef struct lzss_stream lzss_stream_t;
 
-typedef int (*lzss_read_func_t)(lzss_stream_t *s, void *buffer, size_t size);
-typedef int (*lzss_write_funct_t)(lzss_stream_t *s, void *buffer, size_t size);
+typedef size_t (*lzss_read_func_t)(lzss_stream_t *s, void *buffer, size_t size);
+typedef size_t (*lzss_write_funct_t)(lzss_stream_t *s, void *buffer, size_t size);
 
 struct lzss_stream {
   void *opaque;

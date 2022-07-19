@@ -24,8 +24,8 @@ struct array_like {
 void make_array_like(array_like_t *array, uint8_t *data, size_t size);
 void open_array_like_stream(lzss_stream_t *s, array_like_t *array);
 void close_array_like_stream(lzss_stream_t *s);
-int array_like_read(lzss_stream_t *s, void *buffer, size_t size);
-int array_like_write(lzss_stream_t *s, void *buffer, size_t size);
+size_t array_like_read(lzss_stream_t *s, void *buffer, size_t size);
+size_t array_like_write(lzss_stream_t *s, void *buffer, size_t size);
 
 __lzss_weak void make_array_like(array_like_t *array, uint8_t *data,
                                  size_t size) {
@@ -47,7 +47,7 @@ __lzss_weak void close_array_like_stream(lzss_stream_t *s) {
   array->cursor = 0;
 }
 
-__lzss_weak int array_like_read(lzss_stream_t *s, void *buffer, size_t size) {
+__lzss_weak size_t array_like_read(lzss_stream_t *s, void *buffer, size_t size) {
   array_like_t *array;
   size_t i;
 
@@ -68,7 +68,7 @@ __lzss_weak int array_like_read(lzss_stream_t *s, void *buffer, size_t size) {
   return i;
 }
 
-__lzss_weak int array_like_write(lzss_stream_t *s, void *buffer, size_t size) {
+__lzss_weak size_t array_like_write(lzss_stream_t *s, void *buffer, size_t size) {
   array_like_t *array;
   size_t i;
 
